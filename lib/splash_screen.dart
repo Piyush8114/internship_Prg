@@ -1,8 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:internship/service/api_splash_service.dart';
 import 'package:internship/signup.dart';
+
+import 'model/Splash_device_model.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -10,23 +11,22 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  final ApiService _apiService = ApiService();
+
   @override
   void initState() {
     super.initState();
 
     _sendDeviceDetails().then((response) {
-      // Navigate to the next screen after API response
       if (response) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => SignUpScreen()),
         );
       } else {
-        // Handle API failure (optional)
         print('API call failed');
       }
     }).catchError((error) {
-      // Handle error
       print('Error: $error');
     });
   }
@@ -36,7 +36,6 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
@@ -45,14 +44,10 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
           ),
-
-          // Logo at the center
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Placeholder for your app logo
-                // Image.asset('assets/logo.png', width: 200, height: 200),
                 CircularProgressIndicator(),
               ],
             ),
@@ -62,52 +57,27 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  // Function to send device details API call
   Future<bool> _sendDeviceDetails() async {
-    // API URL
-    final String url = 'http://devapiv4.dealsdray.com/api/v2/user/device/add';
+    // Creating an instance of DeviceInfo
+    DeviceInfo deviceInfo = DeviceInfo(
+      deviceType: "andriod",
+      deviceId: "C6179909526098",
+      deviceName: "Samsung-MT200",
+      deviceOSVersion: "2.3.6",
+      deviceIPAddress: "11.433.445.66",
+      lat: 9.9312,
+      long: 76.2673,
+      buyerGcmid: "",
+      buyerPemid: "",
+      app: AppInfo(
+        version: "1.20.5",
+        installTimeStamp: "2022-02-10T12:33:30.696Z",
+        uninstallTimeStamp: "2022-02-10T12:33:30.696Z",
+        downloadTimeStamp: "2022-02-10T12:33:30.696Z",
+      ),
+    );
 
-    // Device info payload
-    Map<String, dynamic> deviceInfo = {
-      "deviceType": "andriod",
-      "deviceId": "C6179909526098",
-      "deviceName": "Samsung-MT200",
-      "deviceOSVersion": "2.3.6",
-      "deviceIPAddress": "11.433.445.66",
-      "lat": 9.9312,
-      "long": 76.2673,
-      "buyer_gcmid": "",
-      "buyer_pemid": "",
-      "app": {
-        "version": "1.20.5",
-        "installTimeStamp": "2022-02-10T12:33:30.696Z",
-        "uninstallTimeStamp": "2022-02-10T12:33:30.696Z",
-        "downloadTimeStamp": "2022-02-10T12:33:30.696Z"
-      }
-    };
-
-    try {
-      // Send POST request to the API
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {"Content-Type": "application/json"},
-        body: json.encode(deviceInfo),
-      );
-
-      // Check if the request was successful
-      if (response.statusCode == 200) {
-        // API call succeeded
-        print('API Response: ${response.body}');
-        return true;
-      } else {
-        // API call failed
-        print('Failed API Response: ${response.body}');
-        return false;
-      }
-    } catch (error) {
-      // Handle error during the request
-      print('Error making API call: $error');
-      return false;
-    }
+    // Call the API using the ApiService
+    return await _apiService.sendDeviceDetails(deviceInfo);
   }
 }

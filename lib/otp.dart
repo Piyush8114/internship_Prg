@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-
 import 'package:internship/home.dart';
+import 'package:internship/service/api_OTP_service.dart';
+
+import 'model/otp_verification_model.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   @override
@@ -12,6 +14,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   int secondsRemaining = 120;
   bool enableResend = false;
   late Timer timer;
+  final ApiService _apiService = ApiService();
+  String otp = '';
 
   @override
   void initState() {
@@ -46,6 +50,25 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       enableResend = false;
       startTimer();
     });
+  }
+
+  Future<void> verifyOtp() async {
+    // Replace with actual user ID and device ID
+    OtpVerificationRequest otpRequest = OtpVerificationRequest(
+      otp: otp,
+      deviceId: "62b43472c84bb6dac82e0504",
+      userId: "62b43547c84bb6dac82e0525",
+    );
+
+    bool success = await _apiService.verifyOtp(otpRequest);
+
+    if (success) {
+      // Navigate to the HomePage on successful OTP verification
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage()));
+    } else {
+      // Handle failed OTP verification
+      print('OTP verification failed');
+    }
   }
 
   @override
@@ -124,6 +147,28 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 40),
+                // Verify Button
+                Container(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => verifyOtp(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red, // Red button background
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    child: Text(
+                      'VERIFY OTP',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -145,12 +190,11 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         style: TextStyle(fontSize: 24),
         maxLength: 1,
         onChanged: (value) {
-          // if (value.length == 1) {
-          //   FocusScope.of(context).nextFocus();
-
-            Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage(),));
+          otp += value;  // Append the value to the OTP string
+          if (otp.length == 4) {
+            verifyOtp();  // Auto verify once the 4 digits are entered
           }
-        // },
+        },
       ),
     );
   }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:internship/otp.dart';
+import 'package:internship/service/api_login_service.dart';
+
+import 'model/otp_model.dart';
 
 class PhoneEmailToggleScreen extends StatefulWidget {
   @override
@@ -8,11 +11,13 @@ class PhoneEmailToggleScreen extends StatefulWidget {
 
 class _PhoneEmailToggleScreenState extends State<PhoneEmailToggleScreen> {
   bool isPhoneSelected = true;
+  final TextEditingController _inputController = TextEditingController();
+  final ApiService _apiService = ApiService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:  SafeArea(
+      body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
@@ -47,8 +52,8 @@ class _PhoneEmailToggleScreenState extends State<PhoneEmailToggleScreen> {
                     alignment: Alignment.center,
                     width: 170,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.all(Radius.circular(30))
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.all(Radius.circular(30))
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -62,7 +67,6 @@ class _PhoneEmailToggleScreenState extends State<PhoneEmailToggleScreen> {
                             });
                           },
                         ),
-                        // const SizedBox(width: 10),
                         ToggleButton(
                           text: 'Email',
                           isSelected: !isPhoneSelected,
@@ -95,23 +99,19 @@ class _PhoneEmailToggleScreenState extends State<PhoneEmailToggleScreen> {
                 const SizedBox(height: 40),
                 // Input Field for Phone/Email
                 TextFormField(
+                  controller: _inputController,
                   decoration: InputDecoration(
                     labelText: isPhoneSelected ? 'Phone' : 'Email',
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType:
-                  isPhoneSelected ? TextInputType.phone : TextInputType.emailAddress,
+                  keyboardType: isPhoneSelected ? TextInputType.phone : TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 40),
                 // Send Code Button
                 Container(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Action for sending code
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => OtpVerificationScreen(),));
-
-                    },
+                    onPressed: () => _sendCode(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.pink[100], // Light pink background
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -134,6 +134,29 @@ class _PhoneEmailToggleScreenState extends State<PhoneEmailToggleScreen> {
         ),
       ),
     );
+  }
+
+  // Function to send OTP or Email Verification Code
+  Future<void> _sendCode() async {
+    if (isPhoneSelected) {
+      String phoneNumber = _inputController.text;
+      OtpRequest otpRequest = OtpRequest(
+        mobileNumber: phoneNumber,
+        deviceId: "62b341aeb0ab5ebe28a758a3", // Replace with the actual device ID
+      );
+
+      bool success = await _apiService.sendOtp(otpRequest);
+      if (success) {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => OtpVerificationScreen()));
+      } else {
+        // Handle error (optional: show error message to the user)
+        print('Failed to send OTP');
+      }
+    } else {
+      // Handle Email Verification Flow
+      // If email, you could call a different API or handle accordingly
+      print('Sending email verification code');
+    }
   }
 }
 

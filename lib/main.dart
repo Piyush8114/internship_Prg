@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:internship/otp.dart';
 import 'package:internship/splash_screen.dart';
 import 'home.dart';
 import 'login.dart';
@@ -17,7 +18,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-     home: SplashScreen(),
+     // home: SplashScreen(),
+     //  home: PhoneEmailToggleScreen()
+     //  home: OtpVerificationScreen(),
+      home: HomePage(),
     );
   }
 }

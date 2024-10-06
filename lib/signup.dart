@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:internship/service/api_signUp_service.dart';
+import 'model/signup_model.dart';
 
-import 'login.dart';
+class SignUpScreen extends StatefulWidget {
+  @override
+  _SignUpScreenState createState() => _SignUpScreenState();
+}
 
-class SignUpScreen extends StatelessWidget {
+class _SignUpScreenState extends State<SignUpScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _referralCodeController = TextEditingController();
+
+  final ApiService _apiService = ApiService();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:  SafeArea(
+      body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
@@ -53,6 +64,7 @@ class SignUpScreen extends StatelessWidget {
                 const SizedBox(height: 40),
                 // Email Field
                 TextFormField(
+                  controller: _emailController,
                   decoration: InputDecoration(
                     labelText: 'Your Email',
                     border: OutlineInputBorder(),
@@ -61,6 +73,7 @@ class SignUpScreen extends StatelessWidget {
                 const SizedBox(height: 20),
                 // Password Field
                 TextFormField(
+                  controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Create Password',
@@ -71,6 +84,7 @@ class SignUpScreen extends StatelessWidget {
                 const SizedBox(height: 20),
                 // Referral Code (Optional)
                 TextFormField(
+                  controller: _referralCodeController,
                   decoration: InputDecoration(
                     labelText: 'Referral Code (Optional)',
                     border: OutlineInputBorder(),
@@ -84,12 +98,7 @@ class SignUpScreen extends StatelessWidget {
                     height: 60,
                     width: 60,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => PhoneEmailToggleScreen()),
-                        );
-                      },
+                      onPressed: () => _submitSignUp(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red, // Background color
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -101,7 +110,6 @@ class SignUpScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
               ],
             ),
           ),
@@ -109,4 +117,56 @@ class SignUpScreen extends StatelessWidget {
       ),
     );
   }
+
+  // Function to submit sign-up data
+  Future<void> _submitSignUp() async {
+    String email = _emailController.text;
+    String password = _passwordController.text;
+    String referralCodeText = _referralCodeController.text;
+
+    int referralCode = referralCodeText.isNotEmpty ? int.parse(referralCodeText) : 0;
+
+    // Create an instance of SignUpData
+    SignUpData signUpData = SignUpData(
+      email: email,
+      password: password,
+      referralCode: referralCode,
+      userId: "62a833766ec5dafd6780fc85", // Replace with actual user ID if necessary
+    );
+
+    try {
+      // Call the API service to send data
+      bool success = await _apiService.signUp(signUpData);
+
+      if (success) {
+        // Handle successful sign-up, navigate to another screen
+        print('Sign-up successful');
+        _showSnackBar('Sign-up successful', Colors.green);
+        // Navigate to another screen or perform desired actions
+      } else {
+        // Handle failed sign-up
+        _showSnackBar('Sign-up failed. Try again.', Colors.red);
+        print('Sign-up failed');
+      }
+    } catch (error) {
+      if (error.toString().contains('Email exists')) {
+        // Show specific error message for existing email
+        _showSnackBar('Email already exists. Please use another email.', Colors.red);
+      } else {
+        // Show general error message
+        _showSnackBar('An error occurred. Please try again.', Colors.red);
+      }
+      print('Sign-up failed: $error');
+    }
+  }
+
+  void _showSnackBar(String message, Color color) {
+    final snackBar = SnackBar(
+      content: Text(message),
+      backgroundColor: color,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+
 }
